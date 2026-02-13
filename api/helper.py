@@ -1,15 +1,23 @@
 import psycopg2
+from psycopg2 import pool
 from fastapi import HTTPException, status
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
+db_pool = pool.SimpleConnectionPool(
+    1, 10,
+    dbname=os.getenv("DB_NAME"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
+    host=os.getenv("DB_HOST")
+)
 
 def execute_query(query, values= (), fetch = False):
-    conn = None
+    conn = db_pool.getconn()
     try:
-        conn = psycopg2.connect(dbname = os.getenv("DB_NAME"), user = os.getenv("DB_USER"), password = os.getenv("DB_PASSWORD"))
+
         cur = conn.cursor(cursor_factory=RealDictCursor)
         cur.execute(query, values)
 
@@ -32,3 +40,6 @@ def execute_query(query, values= (), fetch = False):
         if conn:
             conn.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    finally:
+        db_pool.putconn(conn)
