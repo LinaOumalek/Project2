@@ -1,4 +1,4 @@
-## 📅 Week 2 – Backend Fundamentals & API Design
+## 📅 Week 2
 
 ### ✅ Outcomes
 
